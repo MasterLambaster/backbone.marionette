@@ -327,6 +327,9 @@ describe("Behaviors", function(){
         }
       });
 
+      C = Marionette.CollectionView.extend({
+      })
+
       Layout = Marionette.Layout.extend({
         template: _.template('<div class="top"></div>'),
         regions: {
@@ -465,6 +468,7 @@ describe("Behaviors", function(){
       modelSpy = sinon.spy();
       collectionSpy = sinon.spy();
       fooChangedSpy = sinon.spy();
+      onShowSpy = sinon.spy();
 
       hold = {}
 
@@ -472,6 +476,7 @@ describe("Behaviors", function(){
         initialize: function() {
           testBehavior = this;
         },
+        onShow: onShowSpy,
         modelEvents: {
           change: modelSpy,
           "change:foo": "fooChanged"
@@ -485,14 +490,27 @@ describe("Behaviors", function(){
       CV = Marionette.CollectionView.extend({
         behaviors: {
           test: {}
-        }
+        },
+        template: _.template('')
       });
 
       V = Marionette.ItemView.extend({
         behaviors: {
           test: {}
-        }
+        },
+        template: _.template('')
       });
+
+      CIV = Marionette.CollectionView.extend({
+        template: _.template(''),
+        itemView: V
+      });
+
+      L = Marionette.Layout.extend({
+        template: _.template('<div class="top"></div>'),
+        regions: {
+          topRegion: '.top'
+      }});
 
       m = new Backbone.Model({
         name: "tom"
@@ -500,7 +518,32 @@ describe("Behaviors", function(){
 
       c = new Backbone.Collection([])
 
+      l = new L();
       Marionette.Behaviors.behaviorsLookup = hold;
+    });
+
+    it("should call onShow with collection", function(){
+      v = new CV({
+        collection: c
+      });
+      l.topRegion.show(v);
+      expect(onShowSpy).toHaveBeenCalled();
+    });
+
+    it("should call onShow with view", function(){
+      v = new V({
+        model: m
+      });
+      l.topRegion.show(v);
+      expect(onShowSpy).toHaveBeenCalled();
+    });
+
+    it("should call onShow with on item view through collection", function(){
+      v = new CIV({
+        collection: c
+      });
+      l.topRegion.show(v);
+      expect(onShowSpy).toHaveBeenCalled();
     });
 
     it ("should proxy model events", function() {
